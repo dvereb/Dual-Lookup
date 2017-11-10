@@ -7,6 +7,16 @@ class DualLookup {
 public:
 	DualLookup();
 
+	// NOTE(dev): Used to determine which version of the string you want:
+	//             1 / OPPOSITE:   The string it maps to, opposite of the one you pass in.
+	//             2 / VALUE:      The string passed via the first  paramater of 'add.'
+	//             3 / EQUIVALENT: The string passed via the second parameter of 'add.'
+	enum Type {
+		OPPOSITE = 1,
+		VALUE,
+		EQUIVALENT,
+	};
+
 	/* Add a mapped pair to the container
 	 *  returns false if it already exists, regardless of direction
 	 *   (i.e. value->equivilent is a duplicate of equivilent->value)
@@ -16,7 +26,7 @@ public:
 	/* If found, Set result to the mapped value and true is returned.
 	 * If not found, result remains unchanged and false is returned.
 	 */
-	bool get(T key, T &result);
+	bool get(T key, T &result, const Type &type = Type::OPPOSITE);
 
 	/* If found, return true
 	 * else return false */
@@ -27,7 +37,7 @@ private:
 	std::unordered_map<T, T> mirror;
 
 	// NOTE(dev): These functions actually do the work:
-	bool get_single(T key, T &result, const std::unordered_map<T, T> &umap);
+	bool get_single(const T &key, T &result, const std::unordered_map<T, T> &umap);
 	bool contains_single(const T &key, const std::unordered_map<T, T> &umap);
 };
 
@@ -52,12 +62,22 @@ bool DualLookup<T>::add(T value, T equivilent)
 }
 
 template <class T>
-bool DualLookup<T>::get(T key, T &result)
+bool DualLookup<T>::get(T key, T &result, const Type &type)
 {
 	if(get_single(key, result, owner))
+	{
+		//if(type == Type::OPPOSITE || type == Type::EQUIVALENT)
+		if(type == Type::VALUE)
+			result = key;
 		return true;
+	}
 	if(get_single(key, result, mirror))
+	{
+		//if(type == Type::OPPOSITE || type == Type::VALUE)
+		if(type == Type::EQUIVALENT)
+			result = key;
 		return true;
+	}
 
 	return false; // didn't find it
 }
@@ -74,7 +94,7 @@ bool DualLookup<T>::contains(const T &key)
 }
 
 template <class T>
-bool DualLookup<T>::get_single(T key, T &result, const std::unordered_map<T, T> &umap)
+bool DualLookup<T>::get_single(const T &key, T &result, const std::unordered_map<T, T> &umap)
 {
 	auto i = umap.find(key);
 	if(i == umap.end())
