@@ -65,13 +65,13 @@ TEST_CASE("all tests", "all") {
 			REQUIRE(container.get(1, container_result));
 			CHECK(container_result == 2);
 			container_result = 0;
-			REQUIRE(container.get(1, container_result, DualLookup<int>::Type::OPPOSITE));
+			REQUIRE(container.get(1, container_result, DualLookupBase::Type::OPPOSITE));
 			CHECK(container_result == 2);
 			container_result = 0;
-			REQUIRE(container.get(1, container_result, DualLookup<int>::Type::EQUIVALENT));
+			REQUIRE(container.get(1, container_result, DualLookupBase::Type::EQUIVALENT));
 			CHECK(container_result == 2);
 			container_result = 0;
-			REQUIRE(container.get(1, container_result, DualLookup<int>::Type::VALUE));
+			REQUIRE(container.get(1, container_result, DualLookupBase::Type::VALUE));
 			CHECK(container_result == 1);
 
 			container_result = 0;

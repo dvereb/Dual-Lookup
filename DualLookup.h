@@ -2,11 +2,8 @@
 #define DVEREB_DUALLOOKUP_H
 
 #include <unordered_map>
-template <class T>
-class DualLookup {
-public:
-	DualLookup();
 
+struct DualLookupBase {
 	// NOTE(dev): Used to determine which version of the string you want:
 	//             1 / OPPOSITE:   The string it maps to, opposite of the one you pass in.
 	//             2 / VALUE:      The string passed via the first  paramater of 'add.'
@@ -16,6 +13,15 @@ public:
 		VALUE,
 		EQUIVALENT,
 	};
+
+protected:
+	DualLookupBase() {}
+};
+
+template <class T>
+class DualLookup : public DualLookupBase {
+public:
+	DualLookup();
 
 	/* Add a mapped pair to the container
 	 *  returns false if it already exists, regardless of direction
