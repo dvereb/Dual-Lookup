@@ -2,6 +2,7 @@
 #define DVEREB_DUALLOOKUP_H
 
 #include <unordered_map>
+#include <string>
 
 struct DualLookupBase {
 	// NOTE(dev): Used to determine which version of the string you want:
@@ -25,22 +26,22 @@ public:
 
 	/* Add a mapped pair to the container
 	 *  returns false if it already exists, regardless of direction
-	 *   (i.e. value->equivilent is a duplicate of equivilent->value)
+	 *   (i.e. value->equivalent is a duplicate of equivalent->value)
 	 */
-	bool add(T value, T equivilent);
+	bool add(T value, T equivalent, std::string context = "");
 
 	/* If found, Set result to the mapped value and true is returned.
 	 * If not found, result remains unchanged and false is returned.
 	 */
-	bool get(T key, T &result, const Type &type = Type::OPPOSITE);
+	bool get(T key, T &result, std::string context = "", const Type &type = Type::OPPOSITE);
 
 	/* If found, return true
 	 * else return false */
-	bool contains(const T &key);
+	bool contains(const T &key, std::string context = "");
 
 private:
-	std::unordered_map<T, T> owner;
-	std::unordered_map<T, T> mirror;
+	std::unordered_map<std::string, std::unordered_map<T, T> > owner;
+	std::unordered_map<std::string, std::unordered_map<T, T> > mirror;
 
 	// NOTE(dev): These functions actually do the work:
 	bool get_single(const T &key, T &result, const std::unordered_map<T, T> &umap);
@@ -53,31 +54,33 @@ DualLookup<T>::DualLookup()
 }
 
 template <class T>
-bool DualLookup<T>::add(T value, T equivilent)
+bool DualLookup<T>::add(T value, T equivalent, std::string context)
 {
 	// already exists
-	if(owner.find(value) != owner.end() || mirror.find(value) != mirror.end())
+	if(owner[context].find(value) != owner[context].end()
+	   || mirror[context].find(value) != mirror[context].end())
 		return false;
-	if(owner.find(equivilent) != owner.end() || mirror.find(equivilent) != mirror.end())
+	if(owner[context].find(equivalent) != owner[context].end()
+	   || mirror[context].find(equivalent) != mirror[context].end())
 		return false;
 
-	owner.insert({value, equivilent});
-	mirror.insert({equivilent, value});
+	owner[context].insert({value, equivalent});
+	mirror[context].insert({equivalent, value});
 
 	return true;
 }
 
 template <class T>
-bool DualLookup<T>::get(T key, T &result, const Type &type)
+bool DualLookup<T>::get(T key, T &result, std::string context, const Type &type)
 {
-	if(get_single(key, result, owner))
+	if(get_single(key, result, owner[context]))
 	{
 		//if(type == Type::OPPOSITE || type == Type::EQUIVALENT)
 		if(type == Type::VALUE)
 			result = key;
 		return true;
 	}
-	if(get_single(key, result, mirror))
+	if(get_single(key, result, mirror[context]))
 	{
 		//if(type == Type::OPPOSITE || type == Type::VALUE)
 		if(type == Type::EQUIVALENT)
@@ -89,11 +92,11 @@ bool DualLookup<T>::get(T key, T &result, const Type &type)
 }
 
 template <class T>
-bool DualLookup<T>::contains(const T &key)
+bool DualLookup<T>::contains(const T &key, std::string context)
 {
-	if(contains_single(key, owner))
+	if(contains_single(key, owner[context]))
 		return true;
-	if(contains_single(key, mirror))
+	if(contains_single(key, mirror[context]))
 		return true;
 
 	return false; // didn't find it
